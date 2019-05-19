@@ -1,0 +1,199 @@
+Buildable {
+  title
+  can-build
+}
+
+Buildable building {
+  amount
+}
+
+Buildable geneticist {
+  seconds
+  currently-targeting {
+    none
+    up
+    down
+  }
+}
+
+Buildable upgrade {
+  built-amount
+  plus-amount
+}
+
+Buildable equipment {
+  suffix-level
+}
+
+Cell {
+  icon
+  is-cleared
+  was-overkilled
+  is-current
+  is-corrupted
+  Imp {
+    can-pierce
+    is-fast
+    damage {
+      min
+      max
+    }
+    health {
+      max
+      remaining
+    }
+  }
+}
+
+Storage {
+  title
+  current-amount
+  max-amount
+  time-remaining
+  action-name
+  amount-gained-per-second
+}
+
+Storage trimps {
+  amount-breeding
+  amount-employed {
+    current
+    max
+  }
+}
+
+LogMessage {
+  timestamp
+  category {
+    custom {
+      text
+    }
+    loot {
+      resource-type
+      amount
+    }
+    improbability-helium {
+      amount
+    }
+    recycled-maps {
+      map-count
+      fragment-amount
+    }
+    found-egg {
+      location {
+        earlier
+        here
+        later
+      }
+      resource-type
+      amount
+    }
+  }
+}
+
+MoviePreviewBlock {
+  thumbnail-image
+  thumbnail-movie
+  logo
+  year
+  minimum-age
+  full-video-preview
+  play-description {
+    season
+    episode
+    description
+  }
+  in-my-list {
+    yes
+    no
+  }
+  rating {
+    unrated
+    thumbs-up
+    thumbs-down
+  }
+}
+
+MapTile {
+  image
+  label
+  target-url
+}
+
+MapLayout {
+  title
+  back-link {
+    title
+    url
+  }
+  repeated {
+    MapTile
+    x
+    y
+  }
+}
+
+Location {
+  title
+}
+
+Location adventure-zone {
+  zone-number
+  repeated Monster {
+    monster-number
+    title
+    hp
+    attack
+    defense
+    repeated condition {
+      flag-check {
+        flag-name
+      }
+      chance {
+        probability
+      }
+    }
+  }
+}
+
+new-type Player = structure {
+  class: enum [ seal-clubber | turtle-tamer | pastamancer | sauceror | disco-bandit | accordion-thief ]
+  stats: structure {
+    muscle ,
+    mysticality ,
+    moxie ,
+  }
+}
+
+Class seal-clubber {
+  main-stat = muscle
+}
+
+Class turtle-tamer {
+  main-stat = muscle
+}
+
+Class pastamancer {
+  main-stat = mysticality
+}
+
+Class sauceror {
+  main-stat = mysticality
+}
+
+Class disco-bandit {
+  main-stat = moxie
+}
+
+Class accordion-thief {
+  main-stat = moxie
+}
+
+function player-level (class, stats):
+  main-stat-value = switch Class[class].main-stat {
+    case muscle: stats.muscle
+    case mysticality: stats.mysticality
+    case moxie: stats.moxie
+  }
+  level = square-root(main-stat-value)
+  return level

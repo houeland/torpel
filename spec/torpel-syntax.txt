@@ -1,0 +1,11 @@
+"structure" "{"
+0-N repeats:
+  <field-name:name> ","
+"}"
+
+"enum" "["
+0-N repeats:
+  <field-name:name> "|"
+"]"
+
+"new-type" <type-name:name> <type-definition:structure|enum>

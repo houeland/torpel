@@ -1,0 +1,7 @@
+[package]
+name = "pseudo-bnf-lexer"
+version = "0.1.0"
+authors = ["Tor Gunnar Houeland <887395+houeland@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]

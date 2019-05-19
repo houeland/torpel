@@ -1,0 +1,38 @@
+=== Tor's programming language ===
+
+== Features ==
+Structured data {
+  foo
+  bar
+  blah
+}
+
+Statically analyzable, or lint-override required
+
+User-defined types
+
+Some form of generics. Generic-by-default?
+
+Modules, importing
+
+Toolkit for rendering
+* to HTML/CSS/JS
+* to android?
+* to iphone?
+
+Maybe no interactions for v0.1? I.e. static generation, no dynamic behavior
+
+No separate runtime required - everything is shipped in generated code
+
+Functions - mathematical 1-1 mappings
+* No bottom _|_ or non-deterministic CPU/RAM usage
+
+No undefined behavior
+
+No unsafe behavior
+
+Limited side-effects, none allowed by default
+
+Supports types narrowed to value-ranges
+
+Switch-statement that verifies exactly one case applies
