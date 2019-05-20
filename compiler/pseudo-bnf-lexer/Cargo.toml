@@ -5,3 +5,4 @@ authors = ["Tor Gunnar Houeland <887395+houeland@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
+regex = "1"
