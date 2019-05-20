@@ -35,6 +35,7 @@ struct Rule {
     name: String,
     rule_type: String,
     actions: Vec<RuleAction>,
+    sub_rules: Vec<String>,
 }
 
 impl fmt::Display for Rule {
@@ -42,12 +43,20 @@ impl fmt::Display for Rule {
         write!(f, "rule: {}", self.name)?;
         if self.rule_type == "user-specified-token" {
             write!(f, " read user-specified-token\n")
-        } else {
-            write!(f, " actions:\n")?;
+        } else if self.rule_type == "rule-choice" {
+            write!(f, " one of the following sub-rules:\n")?;
+            for r in self.sub_rules.iter() {
+                write!(f, "  {}\n", r)?;
+            }
+            Ok(())
+        } else if self.rule_type == "actions" {
+            write!(f, " action sequence:\n")?;
             for action in self.actions.iter() {
                 write!(f, "  {}\n", action)?;
             }
             Ok(())
+        } else {
+            write!(f, " not recognized!\n")
         }
     }
 }
@@ -56,16 +65,25 @@ fn parse_rule(line: &str) -> Rule {
     let tokens: Vec<&str> = line.split_whitespace().collect();
     let name = tokens[0].to_string();
     let right_hand = &tokens[2..];
+    let string_pattern = Regex::new(r#"^"([^"]+)"$"#).unwrap();
+    let rule_pattern = Regex::new(r#"^(<[A-Z-]+>)$"#).unwrap();
+    let repeated_rule_pattern = Regex::new(r#"^(<[A-Z-]+>)\*"(.)"$"#).unwrap();
+
     if right_hand == ["<<USER-SPECIFIED-NAME>>"] {
         return Rule {
             name,
             rule_type: "user-specified-token".to_string(),
             actions: vec![],
+            sub_rules: vec![],
+        };
+    } else if right_hand.iter().any(|&x| x == "|") {
+        return Rule {
+            name,
+            rule_type: "rule-choice".to_string(),
+            actions: vec![],
+            sub_rules: right_hand.iter().cloned().filter(|&x| x != "|").map(|x| x.to_string()).collect(),
         };
     }
-    let string_pattern = Regex::new(r#"^"([^"]+)"$"#).unwrap();
-    let rule_pattern = Regex::new(r#"^(<[A-Z-]+>)$"#).unwrap();
-    let repeated_rule_pattern = Regex::new(r#"^(<[A-Z-]+>)\*"(.)"$"#).unwrap();
 
     let mut actions = Vec::new();
     for &token in right_hand.iter() {
@@ -75,13 +93,6 @@ fn parse_rule(line: &str) -> Rule {
                 consume_token: string_pattern.captures(token).unwrap()[1].to_string(),
                 rule_name: "".to_string(),
                 unknown_token: "".to_string(),
-            });
-        } else if token == "|" {
-            actions.push(RuleAction {
-                action_type: "unimplemented".to_string(),
-                consume_token: "".to_string(),
-                rule_name: "".to_string(),
-                unknown_token: "|".to_string(),
             });
         } else if rule_pattern.is_match(token) {
             actions.push(RuleAction {
@@ -110,6 +121,7 @@ fn parse_rule(line: &str) -> Rule {
         name,
         rule_type: "actions".to_string(),
         actions,
+        sub_rules: vec![],
     };
     return r;
 }
