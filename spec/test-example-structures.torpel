@@ -1,0 +1,14 @@
+new-type Player structure {
+  Class ,
+  Stats ,
+} ;
+
+new-type PlayerClass enumeration [
+  Seal-Clubber | Turtle-Tamer | Pastamancer | Sauceror | Disco-Bandit | Accordion-Thief
+] ;
+
+new-type PlayerStats structure {
+  Muscle ,
+  Mysticality ,
+  Moxie ,
+} ;
