@@ -7,13 +7,13 @@ struct PlayerStructure {
 }
 
 #[derive(Debug)]
-struct PlayerClassEnumeration {
-    seal_clubber: Box<Any>,
-    turtle_tamer: Box<Any>,
-    pastamancer: Box<Any>,
-    sauceror: Box<Any>,
-    disco_bandit: Box<Any>,
-    accordion_thief: Box<Any>,
+enum PlayerClassEnumeration {
+    SealClubber(Box<Any>),
+    TurtleTamer(Box<Any>),
+    Pastamancer(Box<Any>),
+    Sauceror(Box<Any>),
+    DiscoBandit(Box<Any>),
+    AccordionThief(Box<Any>),
 }
 
 #[derive(Debug)]
@@ -25,6 +25,6 @@ struct PlayerStatsStructure {
 
 fn main() {
     println!("{:?}", PlayerStructure { class: Box::new(0), stats: Box::new(0) });
-    println!("{:?}", PlayerClassEnumeration { seal_clubber: Box::new(0), turtle_tamer: Box::new(0), pastamancer: Box::new(0), sauceror: Box::new(0), disco_bandit: Box::new(0), accordion_thief: Box::new(0) });
+    println!("{:?}", PlayerClassEnumeration::TurtleTamer(Box::new(0)));
     println!("{:?}", PlayerStatsStructure { muscle: Box::new(0), mysticality: Box::new(0), moxie: Box::new(0) });
 }
