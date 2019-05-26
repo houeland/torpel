@@ -19,28 +19,27 @@ fn to_parser_name(n: &str) -> String {
 }
 
 fn rust_prelude() {
-    println!("extern crate regex;");
     println!("use regex::Regex;");
     println!();
-    println!("fn torpel__consume_token(token: &str, input: &mut Vec<&str>) {{");
+    println!("fn torpel_consume_token(token: &str, input: &mut Vec<&str>) {{");
     println!("  if input[0] == token {{");
-    println!("    input.remove(0);");
+    println!("    input.remove(0).to_string();");
     println!("  }} else {{");
     let panic_message = format!(r#"unexpected token: expected "{{}}" at {{:?}}"#);
     println!("    panic!({:?}, token, input)", panic_message);
     println!("  }}");
     println!("}}");
     println!();
-    println!(r#"const torpel__user_specified_name_pattern: Regex = Regex::new("^[A-Z][a-zA-Z-]*$").unwrap();"#);
-    println!("fn torpel__is_valid_user_specified_name(token: &str) -> bool {{");
-    println!("  return torpel__user_specified_name_pattern.is_match(token);");
+    println!("fn torpel_is_valid_user_specified_name(token: &str) -> bool {{");
+    println!("  lazy_static! {{");
+    println!(r#"    static ref RE: Regex = Regex::new("^[A-Z][a-zA-Z-]*$").unwrap();"#);
+    println!("  }}");
+    println!("  return RE.is_match(token);");
     println!("}}");
     println!();
-    println!(
-        "fn torpel__read_user_specified_name(token: &str, input: &mut Vec<&str>) -> String {{"
-    );
-    println!("  if torpel__is_valid_user_specified_name(input[0]) {{");
-    println!("    return input.remove(0);");
+    println!("fn torpel_read_user_specified_name(input: &mut Vec<&str>) -> String {{");
+    println!("  if torpel_is_valid_user_specified_name(input[0]) {{");
+    println!("    return input.remove(0).to_string();");
     println!("  }} else {{");
     let panic_message = format!(r#"unexpected token: expected user specified name at {{:?}}"#);
     println!("    panic!({:?}, input)", panic_message);
@@ -58,11 +57,12 @@ fn grammar_to_rust_types(grammar: &grammar::Grammar) {
         match &rule.rule_type {
             grammar::RuleType::UserSpecifiedName => {
                 println!();
-                println!("type {} = String;", type_name);
+                println!("pub type {} = String;", type_name);
             }
             grammar::RuleType::Actions(actions) => {
                 println!();
-                println!("struct {} {{", type_name);
+                println!("#[derive(Debug)]");
+                println!("pub struct {} {{", type_name);
                 for a in actions {
                     match a {
                         grammar::RuleAction::ConsumeToken(_) => {}
@@ -90,7 +90,8 @@ fn grammar_to_rust_types(grammar: &grammar::Grammar) {
             }
             grammar::RuleType::RuleChoice(sub_rule_names) => {
                 println!();
-                println!("enum {} {{", type_name);
+                println!("#[derive(Debug)]");
+                println!("pub enum {} {{", type_name);
                 for r in sub_rule_names {
                     let name = r.to_snake_case().to_class_case();
                     println!("  {}({}),", name, name);
@@ -114,7 +115,7 @@ fn generate_check_if_can_start_rule(grammar: &grammar::Grammar, rule_name: &str)
             }
         }
         grammar::RuleType::UserSpecifiedName => {
-            "torpel__is_valid_user_specified_name(input[0])".to_string()
+            "torpel_is_valid_user_specified_name(input[0])".to_string()
         }
         _ => panic!("generate_check_if_can_start_rule must be Actions or UserSpecifiedName"),
     }
@@ -130,19 +131,19 @@ fn grammar_to_rust_parsers(grammar: &grammar::Grammar) {
         let parse_function_name = to_parser_name(&rule.rule_name);
         println!();
         println!(
-            "fn {}(input: &mut Vec<&str>) -> {} {{",
+            "pub fn {}(input: &mut Vec<&str>) -> {} {{",
             parse_function_name, type_name
         );
         match &rule.rule_type {
             grammar::RuleType::UserSpecifiedName => {
-                println!("  return torpel__read_user_specified_name(input);");
+                println!("  return torpel_read_user_specified_name(input);");
             }
             grammar::RuleType::Actions(actions) => {
                 let mut fields = vec![];
                 for a in actions {
                     match a {
                         grammar::RuleAction::ConsumeToken(token) => {
-                            println!("  torpel__consume_token({:?}, input);", token);
+                            println!("  torpel_consume_token({:?}, input);", token);
                         }
                         grammar::RuleAction::RepeatedRuleNameWithSeparator {
                             rule_name,
@@ -153,8 +154,8 @@ fn grammar_to_rust_parsers(grammar: &grammar::Grammar) {
                             let condition = generate_check_if_can_start_rule(grammar, rule_name);
                             println!("  let mut {} = vec![];", field_name);
                             println!("  {}.push({}(input));", field_name, parser_name);
-                            println!("  while tokens[0] == {:?} {{", separator);
-                            println!("    torpel__consume_token({:?}, input);", separator);
+                            println!("  while input[0] == {:?} {{", separator);
+                            println!("    torpel_consume_token({:?}, input);", separator);
                             println!("    if {} {{", condition);
                             println!("      {}.push({}(input));", field_name, parser_name);
                             println!("    }} else {{");
@@ -185,12 +186,14 @@ fn grammar_to_rust_parsers(grammar: &grammar::Grammar) {
                 }
                 for rn in sub_rule_names {
                     let condition = generate_check_if_can_start_rule(grammar, rn);
-                    let type_name = to_type_name(rn);
-                    let parser_name = to_parser_name(rn);
+                    let rn_type_name = to_type_name(rn);
+                    let rn_parser_name = to_parser_name(rn);
                     println!("  if {} {{", condition);
-                    println!("    return {}({}(input));", type_name, parser_name);
+                    println!("    return {}::{}({}(input));", type_name, rn_type_name, rn_parser_name);
                     println!("  }}");
                 }
+                let panic_message = format!(r#"unexpected token: expected a valid sub-rule at {{:?}}"#);
+                println!("  panic!({:?}, input)", panic_message);
             }
         }
         println!("}}");
